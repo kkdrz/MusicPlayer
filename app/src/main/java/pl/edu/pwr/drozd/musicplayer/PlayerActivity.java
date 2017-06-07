@@ -16,6 +16,8 @@ public class PlayerActivity extends AppCompatActivity {
     @BindView(R.id.prev_song_btn)       ImageButton mPrevSongBtn;
     @BindView(R.id.player_layout)       ViewGroup mPlayerLayout;
 
+    PlaylistManager playlistManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
