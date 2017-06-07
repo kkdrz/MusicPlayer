@@ -5,7 +5,10 @@ import android.os.Bundle;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 
+import javax.inject.Inject;
+
 import butterknife.BindView;
+import pl.edu.pwr.drozd.musicplayer.dagger.AppComponent;
 
 public class PlayerActivity extends AppCompatActivity {
 
@@ -16,11 +19,13 @@ public class PlayerActivity extends AppCompatActivity {
     @BindView(R.id.prev_song_btn)       ImageButton mPrevSongBtn;
     @BindView(R.id.player_layout)       ViewGroup mPlayerLayout;
 
-    PlaylistManager playlistManager;
+    @Inject PlaylistManager playlistManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        ((MyApp) getApplication()).getAppComponent().inject(this);
     }
 }

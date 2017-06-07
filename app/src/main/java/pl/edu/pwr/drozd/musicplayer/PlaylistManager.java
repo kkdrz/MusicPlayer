@@ -9,12 +9,15 @@ import android.provider.MediaStore;
 
 import java.util.ArrayList;
 
+import javax.inject.Inject;
+
 import pl.edu.pwr.drozd.musicplayer.dataModel.Song;
 
 public class PlaylistManager {
 
     final private Context context;
 
+    @Inject
     public PlaylistManager(Context context) {
         this.context = context;
     }
