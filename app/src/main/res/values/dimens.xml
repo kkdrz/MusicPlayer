@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="seekBar_padding">5dp</dimen>
+    <dimen name="songTitle_textSize">18sp</dimen>
+    <dimen name="songAuthor_textSize">13sp</dimen>
+</resources>

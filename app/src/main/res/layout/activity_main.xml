@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/player_layout"
@@ -21,7 +22,8 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/poster_placeholder" />
+        app:srcCompat="@drawable/poster_placeholder"
+        android:contentDescription="@string/poster_img"/>
 
     <android.support.constraint.Guideline
         android:id="@+id/guideline"
@@ -34,13 +36,11 @@
 
     <LinearLayout
         android:id="@+id/linearLayout"
+        android:background="@color/seekBar_Background"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:padding="@dimen/seekBar_padding"
         android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:gravity="center"
         android:orientation="vertical"
@@ -50,20 +50,23 @@
         app:layout_constraintTop_toTopOf="@+id/guideline2">
 
         <TextView
-            android:id="@+id/textView"
+            android:id="@+id/song_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="TextView" />
+            android:textSize="@dimen/songTitle_textSize"
+            android:textColor="@color/songTitle_textColor"
+            android:text="@string/hello_world"/>
 
         <android.support.v7.widget.AppCompatSeekBar
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
         <TextView
-            android:id="@+id/textView2"
+            android:id="@+id/song_author"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="TextView" />
+            android:textSize="@dimen/songAuthor_textSize"
+            android:textColor="@color/songAuthor_textColor"/>
     </LinearLayout>
 
     <android.support.constraint.Guideline
@@ -92,28 +95,33 @@
             android:id="@+id/prev_song_btn"
             style="@style/ControlPanel.ControlButton"
             android:rotation="180"
-            app:srcCompat="@drawable/ic_skip_next_white_24dp" />
+            app:srcCompat="@drawable/ic_skip_next_white_24dp"
+            android:contentDescription="@string/prev_song"/>
 
         <ImageButton
             android:id="@+id/backward_song_btn"
             style="@style/ControlPanel.ControlButton"
             android:rotation="180"
-            app:srcCompat="@drawable/ic_fast_forward_white_24dp" />
+            app:srcCompat="@drawable/ic_fast_forward_white_24dp"
+            android:contentDescription="@string/backward_song"/>
 
         <ImageButton
             android:id="@+id/play_song_btn"
             style="@style/ControlPanel.ControlButton"
-            app:srcCompat="@drawable/ic_play_arrow_white_24dp" />
+            app:srcCompat="@drawable/ic_play_arrow_white_24dp"
+            android:contentDescription="@string/play_song"/>
 
         <ImageButton
             android:id="@+id/forward_song_btn"
             style="@style/ControlPanel.ControlButton"
-            app:srcCompat="@drawable/ic_fast_forward_white_24dp" />
+            app:srcCompat="@drawable/ic_fast_forward_white_24dp"
+            android:contentDescription="@string/forward_song"/>
 
         <ImageButton
             android:id="@+id/next_song_btn"
             style="@style/ControlPanel.ControlButton"
-            app:srcCompat="@drawable/ic_skip_next_white_24dp" />
+            app:srcCompat="@drawable/ic_skip_next_white_24dp"
+            android:contentDescription="@string/next_song"/>
     </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>
