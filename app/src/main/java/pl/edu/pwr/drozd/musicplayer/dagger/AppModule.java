@@ -2,6 +2,9 @@ package pl.edu.pwr.drozd.musicplayer.dagger;
 
 import android.app.Application;
 import android.content.Context;
+import android.media.MediaPlayer;
+import android.os.Handler;
+
 import javax.inject.Singleton;
 import dagger.Module;
 import dagger.Provides;
@@ -31,5 +34,17 @@ public class AppModule {
     @Singleton
     PlaylistManager providesPlaylistManager(Context context) {
         return new PlaylistManager(context);
+    }
+
+    @Provides
+    @Singleton
+    MediaPlayer providesMediaPlayer() {
+        return new MediaPlayer();
+    }
+
+    @Provides
+    @Singleton
+    Handler providesHandler() {
+        return new Handler();
     }
 }

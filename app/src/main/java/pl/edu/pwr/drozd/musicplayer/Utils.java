@@ -1,27 +1,44 @@
 package pl.edu.pwr.drozd.musicplayer;
 
-import android.content.Context;
-import android.content.res.AssetManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-
-import java.io.IOException;
-import java.io.InputStream;
-
 public class Utils {
 
-    public static Bitmap getBitmapFromAsset(Context context, String filePath) {
-        AssetManager assetManager = context.getAssets();
+    public static String milliSecondsToTimer(long milliseconds) {
+        String finalTimerString = "";
+        String secondsString = "";
 
-        InputStream istr;
-        Bitmap bitmap = null;
-        try {
-            istr = assetManager.open(filePath);
-            bitmap = BitmapFactory.decodeStream(istr);
-        } catch (IOException e) {
-            // handle exception
+        int hours = (int) (milliseconds / (1000 * 60 * 60));
+        int minutes = (int) (milliseconds % (1000 * 60 * 60)) / (1000 * 60);
+        int seconds = (int) ((milliseconds % (1000 * 60 * 60)) % (1000 * 60) / 1000);
+
+        if (hours > 0) {
+            finalTimerString = hours + ":";
         }
 
-        return bitmap;
+        if (seconds < 10) {
+            secondsString = "0" + seconds;
+        } else {
+            secondsString = "" + seconds;
+        }
+
+        return finalTimerString + minutes + ":" + secondsString;
+    }
+
+    public static int getProgressPercentage(long currentDuration, long totalDuration) {
+        Double percentage;
+
+        long currentSeconds = (int) (currentDuration / 1000);
+        long totalSeconds = (int) (totalDuration / 1000);
+
+        percentage = (((double) currentSeconds) / totalSeconds) * 100;
+
+        return percentage.intValue();
+    }
+
+    public static int progressToTimer(int progress, int totalDuration) {
+        int currentDuration;
+        totalDuration = totalDuration / 1000;
+        currentDuration = (int) ((((double) progress) / 100) * totalDuration);
+
+        return currentDuration * 1000;
     }
 }
