@@ -1,21 +1,21 @@
 package pl.edu.pwr.drozd.musicplayer;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.enrique.stackblur.StackBlurManager;
+import com.bumptech.glide.Glide;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.ThreadLocalRandom;
+
 import javax.inject.Inject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -29,18 +29,17 @@ public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekB
     @BindView(R.id.play_song_btn)       ImageButton mPlaySongBtn;
     @BindView(R.id.next_song_btn)       ImageButton mNextSongBtn;
     @BindView(R.id.prev_song_btn)       ImageButton mPrevSongBtn;
+    @BindView(R.id.poster_img)          ImageView mPosterImage;
     @BindView(R.id.player_layout)       ViewGroup mPlayerLayout;
     @BindView(R.id.seek_bar)            SeekBar mSeekBar;
     @BindView(R.id.song_title)          TextView mSongTitle;
-    @BindView(R.id.song_author)          TextView mSongAuthor;
+    @BindView(R.id.song_author)         TextView mSongAuthor;
 
     @Inject PlaylistManager playlistManager;
     @Inject MediaPlayer mMediaPlayer;
     @Inject Handler mHandler;
     ArrayList<Song> mPlaylist;
     int currentSongIndex;
-
-    public final static int BACKGROUND_IMAGE = R.drawable.background;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,27 +48,23 @@ public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekB
         ((MyApp) getApplication()).getAppComponent().inject(this);
         ButterKnife.bind(this);
         mPlaylist = playlistManager.getPlaylist();
-        setBlurryBackground();
 
         mSeekBar.setOnSeekBarChangeListener(this);
         mMediaPlayer.setOnCompletionListener(this);
+        playSong(0);
+        OnPlayButtonPressed();
     }
 
-    private void setBlurryBackground() {
-        Bitmap bm = BitmapFactory.decodeResource(getResources(), BACKGROUND_IMAGE);
-        StackBlurManager blurManager = new StackBlurManager(bm);
-        blurManager.process(20);
-        mPlayerLayout.setBackground(new BitmapDrawable(getResources(), blurManager.returnBlurredImage()));
+    private void setBlurryBackground(String URL) {
+        Utils.BackgroundImageSetterTask task = new Utils.BackgroundImageSetterTask(mPlayerLayout, getApplicationContext());
+        task.execute(URL);
     }
 
     @Override
-    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
-    }
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {}
 
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
-        // remove message Handler from updating progress bar
         mHandler.removeCallbacks(mUpdateTimeTask);
     }
 
@@ -99,6 +94,7 @@ public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekB
             mSeekBar.setMax(100);
 
             updateProgressBar();
+            displayRandomAlbumCover();
         } catch (IllegalArgumentException | IllegalStateException | IOException e) {
             e.printStackTrace();
         }
@@ -136,6 +132,16 @@ public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekB
         }
     }
 
+    @OnClick(R.id.forward_song_btn)
+    public void OnForwardButtonPressed() {
+        mMediaPlayer.seekTo(mMediaPlayer.getCurrentPosition() + 5000);
+    }
+
+    @OnClick(R.id.backward_song_btn)
+    public void OnBackwardButtonPressed() {
+        mMediaPlayer.seekTo(mMediaPlayer.getCurrentPosition() - 5000);
+    }
+
     public void updateProgressBar() {
         mHandler.postDelayed(mUpdateTimeTask, 100);
     }
@@ -161,5 +167,14 @@ public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekB
     protected void onDestroy() {
         super.onDestroy();
         mMediaPlayer.release();
+    }
+
+    public void displayRandomAlbumCover() {
+        int random = ThreadLocalRandom.current().nextInt(0, Utils.albumCovers.size()-1);
+        Glide.with(this)
+                .load(Utils.albumCovers.get(random))
+                .into(mPosterImage);
+
+        setBlurryBackground(Utils.albumCovers.get(random));
     }
 }
