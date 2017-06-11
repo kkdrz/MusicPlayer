@@ -9,4 +9,5 @@
     <color name="seekBar_Background">#CC000000</color>
     <color name="songTitle_textColor">#FFFFFF</color>
     <color name="songAuthor_textColor">#FFFFFF</color>
+    <color name="songCurrentTime_textColor">#FFFFFF</color>
 </resources>

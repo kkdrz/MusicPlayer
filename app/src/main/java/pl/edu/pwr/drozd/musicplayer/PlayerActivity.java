@@ -1,5 +1,8 @@
 package pl.edu.pwr.drozd.musicplayer;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -11,6 +14,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.enrique.stackblur.StackBlurManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,6 +38,7 @@ public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekB
     @BindView(R.id.seek_bar)            SeekBar mSeekBar;
     @BindView(R.id.song_title)          TextView mSongTitle;
     @BindView(R.id.song_author)         TextView mSongAuthor;
+    @BindView(R.id.currentTime)         TextView mCurrentTime;
 
     @Inject PlaylistManager playlistManager;
     @Inject MediaPlayer mMediaPlayer;
@@ -55,9 +60,13 @@ public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekB
         OnPlayButtonPressed();
     }
 
-    private void setBlurryBackground(String URL) {
-        Utils.BackgroundImageSetterTask task = new Utils.BackgroundImageSetterTask(mPlayerLayout, getApplicationContext());
-        task.execute(URL);
+    private void setBlurryBackground(int drawable) {
+        Bitmap bm = BitmapFactory.decodeResource(getResources(), drawable);
+        StackBlurManager blurManager = new StackBlurManager(bm);
+        blurManager.process(20);
+        mPlayerLayout.setBackground(new BitmapDrawable(getResources(), blurManager.returnBlurredImage()));
+//        Utils.BackgroundImageSetterTask task = new Utils.BackgroundImageSetterTask(mPlayerLayout, getApplicationContext());
+//        task.execute(URL);
     }
 
     @Override
@@ -151,9 +160,11 @@ public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekB
             long totalDuration = mMediaPlayer.getDuration();
             long currentDuration = mMediaPlayer.getCurrentPosition();
 
-            int progress = (Utils.getProgressPercentage(currentDuration, totalDuration));
+            int progress = Utils.getProgressPercentage(currentDuration, totalDuration);
             mSeekBar.setProgress(progress);
 
+            String time = Utils.milliSecondsToTimer(mMediaPlayer.getCurrentPosition());
+            mCurrentTime.setText(time);
             mHandler.postDelayed(this, 100);
         }
     };

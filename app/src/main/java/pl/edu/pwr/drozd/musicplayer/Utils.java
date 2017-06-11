@@ -19,17 +19,16 @@ import java.util.Arrays;
 
 class Utils {
 
-    static final ArrayList<String> albumCovers = new ArrayList<>(
+    static final ArrayList<Integer> albumCovers = new ArrayList<>(
             Arrays.asList(
-                    "http://glamrap.pl/images/stories/g2/okladka_styl_zycia_gnoja.jpg",
-                    "http://www.klipon.pl/pliki/drugi_poczatek_kl.jpg",
-                    "http://t-eska.cdn.smcloud.net/common/8/0/s/801414DWKZ.jpg/ru-0-r-650,0-n-801414DWKZ_tede.jpg",
-                    "http://www.rapfundament.pl/wp-content/uploads/2013/10/potwierdzone-info-okladka.jpg",
-                    "http://i1.pudelekx.pl/b9ed5d24752556634089fe9f2a3af001e1a3b6a4/12145160_409635802568055_1611935362_n-jpg",
-                    "http://s.bravo.pl/download/multimedia/pictures/1002/72246020321361151389759.jpg",
-                    "https://www.smashingmagazine.com/images/music-cd-covers/43.jpg",
-                    "https://le0pard13.files.wordpress.com/2013/08/pink-floyd-dark-side-of-the-moon-album-cover.jpg",
-                    "http://6uh9u7hhy8-flywheel.netdna-ssl.com/wp-content/uploads/2016/03/beyonce-formation-tracklist-1.jpg"));
+                    R.drawable.cover1,
+                    R.drawable.cover2,
+                    R.drawable.cover3,
+                    R.drawable.cover4,
+                    R.drawable.cover5,
+                    R.drawable.cover6,
+                    R.drawable.cover7,
+                    R.drawable.cover8));
 
     private static Bitmap getBitmapFromURL(String src) {
         try {
