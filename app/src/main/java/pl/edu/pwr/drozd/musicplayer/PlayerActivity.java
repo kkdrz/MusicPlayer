@@ -1,13 +1,18 @@
 package pl.edu.pwr.drozd.musicplayer;
 
+
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
 import android.os.Handler;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -28,6 +33,7 @@ import pl.edu.pwr.drozd.musicplayer.dataModel.Song;
 
 public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener, MediaPlayer.OnCompletionListener {
 
+    private static final String CURRENT_SONG_INDEX = "CURRENT_SONG";
     @BindView(R.id.backward_song_btn)   ImageButton mBackwardSongBtn;
     @BindView(R.id.forward_song_btn)    ImageButton mForwardSongBtn;
     @BindView(R.id.play_song_btn)       ImageButton mPlaySongBtn;
@@ -43,30 +49,46 @@ public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekB
     @Inject PlaylistManager playlistManager;
     @Inject MediaPlayer mMediaPlayer;
     @Inject Handler mHandler;
+    @Inject SharedPreferences mSharedPrefs;
     ArrayList<Song> mPlaylist;
     int currentSongIndex;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("STATE: ", "OnCreate");
         setContentView(R.layout.activity_main);
+        hideActionBarTitle();
+
         ((MyApp) getApplication()).getAppComponent().inject(this);
         ButterKnife.bind(this);
         mPlaylist = playlistManager.getPlaylist();
 
         mSeekBar.setOnSeekBarChangeListener(this);
         mMediaPlayer.setOnCompletionListener(this);
-        playSong(0);
-        OnPlayButtonPressed();
     }
 
-    private void setBlurryBackground(int drawable) {
-        Bitmap bm = BitmapFactory.decodeResource(getResources(), drawable);
-        StackBlurManager blurManager = new StackBlurManager(bm);
-        blurManager.process(20);
-        mPlayerLayout.setBackground(new BitmapDrawable(getResources(), blurManager.returnBlurredImage()));
-//        Utils.BackgroundImageSetterTask task = new Utils.BackgroundImageSetterTask(mPlayerLayout, getApplicationContext());
-//        task.execute(URL);
+    private void hideActionBarTitle() {
+        ActionBar mActionBar = getSupportActionBar();
+        if (mActionBar != null)
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+    }
+
+    @Override
+    protected void onStart() {
+        Log.d("STATE: ", "OnStart");
+        super.onStart();
+        currentSongIndex = mSharedPrefs.getInt(CURRENT_SONG_INDEX, 0);
+        loadSong(currentSongIndex);
+    }
+
+    @Override
+    protected void onStop() {
+        Log.d("STATE: ", "OnStop");
+        super.onStop();
+        SharedPreferences.Editor editor = mSharedPrefs.edit();
+        editor.putInt(CURRENT_SONG_INDEX, currentSongIndex);
+        editor.apply();
     }
 
     @Override
@@ -87,20 +109,19 @@ public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekB
         updateProgressBar();
     }
 
-    private void playSong(int songIndex) {
+    private void loadSong(int songIndex) {
         try {
-            mMediaPlayer.reset();
-            mMediaPlayer.setDataSource(getApplicationContext(), mPlaylist.get(songIndex).getURI());
-            mMediaPlayer.prepare();
-            mMediaPlayer.start();
-
             mSongTitle.setText(mPlaylist.get(songIndex).getTitle());
             mSongAuthor.setText(mPlaylist.get(songIndex).getAuthor());
 
-            mPlaySongBtn.setImageResource(R.drawable.ic_pause_white_24dp);
+            mPlaySongBtn.setImageResource(R.drawable.ic_play_arrow_white_24dp);
 
             mSeekBar.setProgress(0);
             mSeekBar.setMax(100);
+
+            mMediaPlayer.reset();
+            mMediaPlayer.setDataSource(getApplicationContext(), mPlaylist.get(songIndex).getURI());
+            mMediaPlayer.prepare();
 
             updateProgressBar();
             displayRandomAlbumCover();
@@ -111,34 +132,37 @@ public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekB
 
     @OnClick(R.id.play_song_btn)
     public void OnPlayButtonPressed() {
-        if (mMediaPlayer.isPlaying()) {
-            mMediaPlayer.pause();
-            mPlaySongBtn.setImageResource(R.drawable.ic_play_arrow_white_24dp);
-        }
-        else {
+        if (!mMediaPlayer.isPlaying()) {
             mMediaPlayer.start();
             mPlaySongBtn.setImageResource(R.drawable.ic_pause_white_24dp);
+        } else {
+            mMediaPlayer.pause();
+            mPlaySongBtn.setImageResource(R.drawable.ic_play_arrow_white_24dp);
         }
     }
 
     @OnClick(R.id.next_song_btn)
     public void OnNextButtonPressed() {
+        boolean isPlaying = mMediaPlayer.isPlaying();
         if (currentSongIndex < (mPlaylist.size() - 1)) {
-            playSong(++currentSongIndex);
+            loadSong(++currentSongIndex);
         } else {
             currentSongIndex = 0;
-            playSong(currentSongIndex);
+            loadSong(currentSongIndex);
         }
+        OnPlayButtonPressed();
     }
 
     @OnClick(R.id.prev_song_btn)
     public void OnPrevButtonPressed() {
+        boolean isPlaying = mMediaPlayer.isPlaying();
         if (currentSongIndex > 0) {
-            playSong(--currentSongIndex);
+            loadSong(--currentSongIndex);
         } else {
             currentSongIndex = mPlaylist.size()-1;
-            playSong(currentSongIndex);
+            loadSong(currentSongIndex);
         }
+        OnPlayButtonPressed();
     }
 
     @OnClick(R.id.forward_song_btn)
@@ -152,7 +176,7 @@ public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekB
     }
 
     public void updateProgressBar() {
-        mHandler.postDelayed(mUpdateTimeTask, 100);
+        mHandler.postDelayed(mUpdateTimeTask, 50);
     }
 
     private Runnable mUpdateTimeTask = new Runnable() {
@@ -171,13 +195,16 @@ public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekB
 
     @Override
     public void onCompletion(MediaPlayer mp) {
+        Log.d("STATE: ", "OnCompletion");
         OnNextButtonPressed();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mMediaPlayer.release();
+        Log.d("STATE: ", "OnDestroy");
+        mMediaPlayer.stop();
+        mHandler.removeCallbacks(mUpdateTimeTask);
     }
 
     public void displayRandomAlbumCover() {
@@ -187,5 +214,12 @@ public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekB
                 .into(mPosterImage);
 
         setBlurryBackground(Utils.albumCovers.get(random));
+    }
+
+    private void setBlurryBackground(int drawable) {
+        Bitmap bm = BitmapFactory.decodeResource(getResources(), drawable);
+        StackBlurManager blurManager = new StackBlurManager(bm);
+        blurManager.process(20);
+        mPlayerLayout.setBackground(new BitmapDrawable(getResources(), blurManager.returnBlurredImage()));
     }
 }

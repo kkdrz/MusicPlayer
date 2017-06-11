@@ -1,17 +1,10 @@
 package pl.edu.pwr.drozd.musicplayer;
 
-import android.content.Context;
+
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.os.AsyncTask;
-import android.view.ViewGroup;
-
-import com.enrique.stackblur.StackBlurManager;
-
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -30,7 +23,7 @@ class Utils {
                     R.drawable.cover7,
                     R.drawable.cover8));
 
-    private static Bitmap getBitmapFromURL(String src) {
+    static Bitmap getBitmapFromURL(String src) {
         try {
             URL url = new URL(src);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -43,30 +36,8 @@ class Utils {
         }
     }
 
-    static class BackgroundImageSetterTask extends AsyncTask<String, Void, Bitmap> {
-        ViewGroup viewGroup;
-        Context context;
 
-        BackgroundImageSetterTask(ViewGroup view, Context context) {
-            viewGroup = view;
-            this.context = context;
-        }
-
-        @Override
-        protected Bitmap doInBackground(String... params) {
-            return getBitmapFromURL(params[0]);
-        }
-
-        @Override
-        protected void onPostExecute(Bitmap bm) {
-            StackBlurManager blurManager = new StackBlurManager(bm);
-            blurManager.process(20);
-            viewGroup.setBackground(new BitmapDrawable(context.getResources(), blurManager.returnBlurredImage()));
-
-        }
-    }
-
-    public static String milliSecondsToTimer(long milliseconds) {
+    static String milliSecondsToTimer(long milliseconds) {
         String finalTimerString = "";
         String secondsString = "";
 

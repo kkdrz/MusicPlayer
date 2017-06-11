@@ -2,8 +2,10 @@ package pl.edu.pwr.drozd.musicplayer.dagger;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 
 import javax.inject.Singleton;
 import dagger.Module;
@@ -46,5 +48,11 @@ public class AppModule {
     @Singleton
     Handler providesHandler() {
         return new Handler();
+    }
+
+    @Provides
+    @Singleton
+    SharedPreferences providesSharedPreferences(Application application) {
+        return PreferenceManager.getDefaultSharedPreferences(application);
     }
 }
