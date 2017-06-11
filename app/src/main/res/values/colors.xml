@@ -10,4 +10,5 @@
     <color name="songTitle_textColor">#FFFFFF</color>
     <color name="songAuthor_textColor">#FFFFFF</color>
     <color name="songCurrentTime_textColor">#FFFFFF</color>
+    <color name="playlist_item_background">#000000</color>
 </resources>

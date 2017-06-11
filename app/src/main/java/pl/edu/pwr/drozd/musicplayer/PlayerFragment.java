@@ -1,18 +1,18 @@
 package pl.edu.pwr.drozd.musicplayer;
 
-
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
-import android.os.Handler;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -26,12 +26,16 @@ import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javax.inject.Inject;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import pl.edu.pwr.drozd.musicplayer.dataModel.Song;
 
-public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener, MediaPlayer.OnCompletionListener {
+import static pl.edu.pwr.drozd.musicplayer.ViewPagerActivity.PLAYLIST;
+
+
+public class PlayerFragment extends Fragment implements SeekBar.OnSeekBarChangeListener, MediaPlayer.OnCompletionListener {
 
     private static final String CURRENT_SONG_INDEX = "CURRENT_SONG";
     @BindView(R.id.backward_song_btn)   ImageButton mBackwardSongBtn;
@@ -53,37 +57,44 @@ public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekB
     ArrayList<Song> mPlaylist;
     int currentSongIndex;
 
+    public static PlayerFragment newInstance(ArrayList<Song> mPlaylist) {
+        PlayerFragment f = new PlayerFragment();
+        Bundle args = new Bundle();
+        args.putParcelableArrayList(PLAYLIST, mPlaylist);
+        f.setArguments(args);
+        return f;
+    }
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d("STATE: ", "OnCreate");
-        setContentView(R.layout.activity_main);
-        hideActionBarTitle();
+        ((MyApp) getActivity().getApplication()).getAppComponent().inject(this);
+    }
 
-        ((MyApp) getApplication()).getAppComponent().inject(this);
-        ButterKnife.bind(this);
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.player_fragment, container, false);
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        ButterKnife.bind(this, view);
         mPlaylist = playlistManager.getPlaylist();
-
         mSeekBar.setOnSeekBarChangeListener(this);
         mMediaPlayer.setOnCompletionListener(this);
     }
 
-    private void hideActionBarTitle() {
-        ActionBar mActionBar = getSupportActionBar();
-        if (mActionBar != null)
-            getSupportActionBar().setDisplayShowTitleEnabled(false);
-    }
-
     @Override
-    protected void onStart() {
-        Log.d("STATE: ", "OnStart");
+    public void onStart() {
         super.onStart();
         currentSongIndex = mSharedPrefs.getInt(CURRENT_SONG_INDEX, 0);
         loadSong(currentSongIndex);
     }
 
     @Override
-    protected void onStop() {
+    public void onStop() {
         Log.d("STATE: ", "OnStop");
         super.onStop();
         SharedPreferences.Editor editor = mSharedPrefs.edit();
@@ -120,7 +131,7 @@ public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekB
             mSeekBar.setMax(100);
 
             mMediaPlayer.reset();
-            mMediaPlayer.setDataSource(getApplicationContext(), mPlaylist.get(songIndex).getURI());
+            mMediaPlayer.setDataSource(getActivity(), mPlaylist.get(songIndex).getURI());
             mMediaPlayer.prepare();
 
             updateProgressBar();
@@ -143,7 +154,6 @@ public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekB
 
     @OnClick(R.id.next_song_btn)
     public void OnNextButtonPressed() {
-        boolean isPlaying = mMediaPlayer.isPlaying();
         if (currentSongIndex < (mPlaylist.size() - 1)) {
             loadSong(++currentSongIndex);
         } else {
@@ -155,7 +165,6 @@ public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekB
 
     @OnClick(R.id.prev_song_btn)
     public void OnPrevButtonPressed() {
-        boolean isPlaying = mMediaPlayer.isPlaying();
         if (currentSongIndex > 0) {
             loadSong(--currentSongIndex);
         } else {
@@ -200,7 +209,7 @@ public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekB
     }
 
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
         super.onDestroy();
         Log.d("STATE: ", "OnDestroy");
         mMediaPlayer.stop();
@@ -222,4 +231,6 @@ public class PlayerActivity extends AppCompatActivity implements SeekBar.OnSeekB
         blurManager.process(20);
         mPlayerLayout.setBackground(new BitmapDrawable(getResources(), blurManager.returnBlurredImage()));
     }
+
+
 }
