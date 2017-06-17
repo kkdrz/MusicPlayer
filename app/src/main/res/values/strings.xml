@@ -7,4 +7,5 @@
     <string name="forward_song">Forward Song</string>
     <string name="next_song">Next Song</string>
     <string name="currentTime">0:00</string>
+    <string name="diskoteka">Diskoteka</string>
 </resources>

@@ -3,21 +3,35 @@ package pl.edu.pwr.drozd.musicplayer;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.hardware.Camera;
+import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SwitchCompat;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 
 import com.github.nisrulz.sensey.OrientationDetector;
 import com.github.nisrulz.sensey.Sensey;
+import com.github.nisrulz.sensey.ShakeDetector;
 import com.squareup.leakcanary.RefWatcher;
+
 import java.util.ArrayList;
+
 import javax.inject.Inject;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import pl.edu.pwr.drozd.musicplayer.dataModel.Song;
@@ -33,6 +47,10 @@ public class ViewPagerActivity extends AppCompatActivity implements PlaylistAdap
     private PlaylistFragment mPlaylistFragment;
     private PlayerFragment mPlayerFragment;
     private Handler mHandler;
+    private Camera mCamera;
+    private Camera.Parameters params;
+    private boolean isFlashAvailable;
+    boolean isFlashOn = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,20 +59,35 @@ public class ViewPagerActivity extends AppCompatActivity implements PlaylistAdap
         hideActionBarTitle();
         ((MyApp) getApplication()).getAppComponent().inject(this);
         Sensey.getInstance().init(getApplicationContext());
-
         ButterKnife.bind(this);
         mHandler = new Handler();
+
         mViewPager.setAdapter(new MyPagerAdapter(getSupportFragmentManager(), this));
         mPlaylist = playlistManager.getPlaylist();
+        instantiateFragments();
+        mHandler.postDelayed(mGestureTask, 50);
+        cameraStuff();
+    }
+
+    private void cameraStuff() {
+        isFlashAvailable = getApplicationContext().getPackageManager()
+                .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
+
+        mCamera = Camera.open();
+        params = mCamera.getParameters();
+    }
+
+    private void instantiateFragments() {
         mPlaylistFragment = PlaylistFragment.newInstance(mPlaylist);
         mPlayerFragment = PlayerFragment.newInstance(mPlaylist);
-        mHandler.postDelayed(mGestureTask, 50);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         Sensey.getInstance().stop();
+        mHandler.removeCallbacks(mFlashTask);
+        mHandler.removeCallbacks(mGestureTask);
         RefWatcher refWatcher = MyApp.getRefWatcher(this);
         refWatcher.watch(this);
     }
@@ -74,6 +107,30 @@ public class ViewPagerActivity extends AppCompatActivity implements PlaylistAdap
     @Override
     public void onSongChanged(int songIndex) {
         mPlaylistFragment.changeCurrentSong(songIndex);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        MenuItem menuItem = menu.findItem(R.id.menu_item_diskoteka);
+        View view = MenuItemCompat.getActionView(menuItem);
+        SwitchCompat mSwitch = (SwitchCompat) view.findViewById(R.id.diskoteka_switch);
+        mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (!isFlashAvailable) return;
+                if (isChecked) {
+                    Sensey.getInstance().startShakeDetection(shakeListener);
+                    Sensey.getInstance().stopOrientationDetection(orientationListener);
+                }
+                else {
+                    Sensey.getInstance().stopShakeDetection(shakeListener);
+                    turnOffFlashLight();
+                    mHandler.postDelayed(mGestureTask, 10);
+                }
+            }
+        });
+        return true;
     }
 
     private class MyPagerAdapter extends FragmentStatePagerAdapter {
@@ -100,6 +157,7 @@ public class ViewPagerActivity extends AppCompatActivity implements PlaylistAdap
         }
 
     }
+
     OrientationDetector.OrientationListener orientationListener = new OrientationDetector.OrientationListener() {
         @Override public void onTopSideUp() {
             Log.d("GEST", "TOP");
@@ -123,11 +181,48 @@ public class ViewPagerActivity extends AppCompatActivity implements PlaylistAdap
             mHandler.postDelayed(mGestureTask, 100);
         }
     };
+
+    ShakeDetector.ShakeListener shakeListener = new ShakeDetector.ShakeListener() {
+        @Override public void onShakeDetected() {
+            mHandler.postDelayed(mFlashTask, 10);
+        }
+
+        @Override public void onShakeStopped() {
+            mHandler.removeCallbacks(mFlashTask);
+            turnOffFlashLight();
+        }
+
+    };
+
     private Runnable mGestureTask = new Runnable() {
         public void run() {
             Sensey.getInstance().startOrientationDetection(orientationListener);
         }
     };
 
+    private Runnable mFlashTask = new Runnable() {
+        public void run() {
+            if(isFlashOn){
+                turnOffFlashLight();
+            } else turnOnFlashLight();
+            mHandler.postDelayed(mFlashTask, 10);
+        }
+    };
+
+    public void turnOnFlashLight() {
+        params = mCamera.getParameters();
+        params.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+        mCamera.setParameters(params);
+        mCamera.startPreview();
+        isFlashOn = true;
+    }
+
+    public void turnOffFlashLight() {
+        params = mCamera.getParameters();
+        params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+        mCamera.setParameters(params);
+        mCamera.stopPreview();
+        isFlashOn = false;
+    }
 
 }
