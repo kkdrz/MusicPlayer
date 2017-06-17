@@ -13,8 +13,9 @@
 
     <ImageView
         android:id="@+id/poster_img"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
+        android:layout_width="301dp"
+        android:layout_height="301dp"
+        android:padding="@dimen/poster_img_padding"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:contentDescription="@string/poster_img"
@@ -24,6 +25,7 @@
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
+        android:background="@color/poster_img_background"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout" />
 
     <LinearLayout

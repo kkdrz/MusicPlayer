@@ -1,6 +1,7 @@
 package pl.edu.pwr.drozd.musicplayer;
 
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -19,14 +20,16 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import pl.edu.pwr.drozd.musicplayer.dataModel.Song;
 
-public class ViewPagerActivity extends AppCompatActivity {
+public class ViewPagerActivity extends AppCompatActivity implements PlaylistAdapter.ViewHolderListener, PlayerFragment.PlayerListener {
 
     @BindView(R.id.view_pager)      ViewPager mViewPager;
     @Inject PlaylistManager playlistManager;
     @Inject SharedPreferences mSharedPrefs;
-    ArrayList<Song> mPlaylist;
+    private ArrayList<Song> mPlaylist;
     private static final int NUM_PAGES = 2;
     public static String PLAYLIST = "playlist";
+    private PlaylistFragment mPlaylistFragment;
+    private PlayerFragment mPlayerFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,8 +38,11 @@ public class ViewPagerActivity extends AppCompatActivity {
         hideActionBarTitle();
         ((MyApp) getApplication()).getAppComponent().inject(this);
         ButterKnife.bind(this);
-        mViewPager.setAdapter(new MyPagerAdapter(getSupportFragmentManager()));
+        mViewPager.setAdapter(new MyPagerAdapter(getSupportFragmentManager(), this));
         mPlaylist = playlistManager.getPlaylist();
+        mPlaylistFragment = PlaylistFragment.newInstance(mPlaylist);
+        mPlayerFragment = PlayerFragment.newInstance(mPlaylist);
+
     }
 
     private void hideActionBarTitle() {
@@ -45,11 +51,24 @@ public class ViewPagerActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowTitleEnabled(false);
     }
 
+    @Override
+    public void onPlaylistItemClicked(int layoutPosition) {
+        mPlayerFragment.loadSong(layoutPosition);
+        mPlayerFragment.OnPlayButtonPressed();
+    }
+
+    @Override
+    public void onSongChanged(int songIndex) {
+        mPlaylistFragment.changeCurrentSong(songIndex);
+    }
+
 
     private class MyPagerAdapter extends FragmentStatePagerAdapter {
 
-        MyPagerAdapter(FragmentManager fm) {
+        Context context;
+        MyPagerAdapter(FragmentManager fm, Context context) {
             super(fm);
+            this.context = context;
         }
 
         @Override
@@ -61,9 +80,9 @@ public class ViewPagerActivity extends AppCompatActivity {
         public Fragment getItem(int position) {
             switch (position){
                 case 0:
-                    return PlayerFragment.newInstance(mPlaylist);
+                    return mPlayerFragment;
                 default:
-                    return PlaylistFragment.newInstance(mPlaylist);
+                    return mPlaylistFragment;
             }
         }
 

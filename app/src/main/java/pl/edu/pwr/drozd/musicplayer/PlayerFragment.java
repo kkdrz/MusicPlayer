@@ -54,7 +54,8 @@ public class PlayerFragment extends Fragment implements SeekBar.OnSeekBarChangeL
     @Inject MediaPlayer mMediaPlayer;
     @Inject Handler mHandler;
     @Inject SharedPreferences mSharedPrefs;
-    ArrayList<Song> mPlaylist;
+    private ArrayList<Song> mPlaylist;
+    private PlayerListener mListener;
     int currentSongIndex;
 
     public static PlayerFragment newInstance(ArrayList<Song> mPlaylist) {
@@ -69,6 +70,7 @@ public class PlayerFragment extends Fragment implements SeekBar.OnSeekBarChangeL
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ((MyApp) getActivity().getApplication()).getAppComponent().inject(this);
+        mListener = (ViewPagerActivity) getActivity();
     }
 
     @Nullable
@@ -120,7 +122,7 @@ public class PlayerFragment extends Fragment implements SeekBar.OnSeekBarChangeL
         updateProgressBar();
     }
 
-    private void loadSong(int songIndex) {
+    public void loadSong(int songIndex) {
         try {
             mSongTitle.setText(mPlaylist.get(songIndex).getTitle());
             mSongAuthor.setText(mPlaylist.get(songIndex).getAuthor());
@@ -135,7 +137,10 @@ public class PlayerFragment extends Fragment implements SeekBar.OnSeekBarChangeL
             mMediaPlayer.prepare();
 
             updateProgressBar();
-            displayRandomAlbumCover();
+            Utils.setBlurryBackground(Utils.displayRandomAlbumCover(getContext(), mPosterImage), mPlayerLayout, getContext());
+            currentSongIndex = songIndex;
+            mListener.onSongChanged(currentSongIndex);
+
         } catch (IllegalArgumentException | IllegalStateException | IOException e) {
             e.printStackTrace();
         }
@@ -216,21 +221,7 @@ public class PlayerFragment extends Fragment implements SeekBar.OnSeekBarChangeL
         mHandler.removeCallbacks(mUpdateTimeTask);
     }
 
-    public void displayRandomAlbumCover() {
-        int random = ThreadLocalRandom.current().nextInt(0, Utils.albumCovers.size()-1);
-        Glide.with(this)
-                .load(Utils.albumCovers.get(random))
-                .into(mPosterImage);
-
-        setBlurryBackground(Utils.albumCovers.get(random));
+    interface PlayerListener {
+        void onSongChanged(int songIndex);
     }
-
-    private void setBlurryBackground(int drawable) {
-        Bitmap bm = BitmapFactory.decodeResource(getResources(), drawable);
-        StackBlurManager blurManager = new StackBlurManager(bm);
-        blurManager.process(20);
-        mPlayerLayout.setBackground(new BitmapDrawable(getResources(), blurManager.returnBlurredImage()));
-    }
-
-
 }

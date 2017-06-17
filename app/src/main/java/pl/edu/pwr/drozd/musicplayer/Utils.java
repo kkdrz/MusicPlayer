@@ -1,14 +1,23 @@
 package pl.edu.pwr.drozd.musicplayer;
 
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+
+import com.bumptech.glide.Glide;
+import com.enrique.stackblur.StackBlurManager;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
 
 class Utils {
 
@@ -36,6 +45,20 @@ class Utils {
         }
     }
 
+    static int displayRandomAlbumCover(Context context, ImageView imageView) {
+        int random = ThreadLocalRandom.current().nextInt(0, Utils.albumCovers.size()-1);
+        Glide.with(context)
+                .load(Utils.albumCovers.get(random))
+                .into(imageView);
+        return Utils.albumCovers.get(random);
+    }
+
+    static void setBlurryBackground(int drawable, ViewGroup viewGroup, Context context) {
+        Bitmap bm = BitmapFactory.decodeResource(context.getResources(), drawable);
+        StackBlurManager blurManager = new StackBlurManager(bm);
+        blurManager.process(20);
+        viewGroup.setBackground(new BitmapDrawable(context.getResources(), blurManager.returnBlurredImage()));
+    }
 
     static String milliSecondsToTimer(long milliseconds) {
         String finalTimerString = "";
