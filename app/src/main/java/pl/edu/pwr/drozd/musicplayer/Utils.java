@@ -7,14 +7,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-
 import com.bumptech.glide.Glide;
 import com.enrique.stackblur.StackBlurManager;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
@@ -31,19 +25,6 @@ class Utils {
                     R.drawable.cover6,
                     R.drawable.cover7,
                     R.drawable.cover8));
-
-    static Bitmap getBitmapFromURL(String src) {
-        try {
-            URL url = new URL(src);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setDoInput(true);
-            connection.connect();
-            InputStream input = connection.getInputStream();
-            return BitmapFactory.decodeStream(input);
-        } catch (IOException e) {
-            return null;
-        }
-    }
 
     static int displayRandomAlbumCover(Context context, ImageView imageView) {
         int random = ThreadLocalRandom.current().nextInt(0, Utils.albumCovers.size()-1);

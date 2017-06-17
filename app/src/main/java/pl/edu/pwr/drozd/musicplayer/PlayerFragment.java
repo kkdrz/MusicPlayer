@@ -1,9 +1,6 @@
 package pl.edu.pwr.drozd.musicplayer;
 
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,12 +15,10 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
-import com.enrique.stackblur.StackBlurManager;
+import com.squareup.leakcanary.RefWatcher;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.concurrent.ThreadLocalRandom;
 
 import javax.inject.Inject;
 
@@ -203,7 +198,7 @@ public class PlayerFragment extends Fragment implements SeekBar.OnSeekBarChangeL
 
             String time = Utils.milliSecondsToTimer(mMediaPlayer.getCurrentPosition());
             mCurrentTime.setText(time);
-            mHandler.postDelayed(this, 100);
+            mHandler.postDelayed(this, 50);
         }
     };
 
@@ -219,7 +214,10 @@ public class PlayerFragment extends Fragment implements SeekBar.OnSeekBarChangeL
         Log.d("STATE: ", "OnDestroy");
         mMediaPlayer.stop();
         mHandler.removeCallbacks(mUpdateTimeTask);
+        RefWatcher refWatcher = MyApp.getRefWatcher(getActivity());
+        refWatcher.watch(this);
     }
+
 
     interface PlayerListener {
         void onSongChanged(int songIndex);
