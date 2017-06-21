@@ -22,6 +22,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
+import android.widget.Toast;
 
 import com.github.nisrulz.sensey.OrientationDetector;
 import com.github.nisrulz.sensey.Sensey;
@@ -51,6 +52,7 @@ public class ViewPagerActivity extends AppCompatActivity implements PlaylistAdap
     private Camera.Parameters params;
     private boolean isFlashAvailable;
     boolean isFlashOn = false;
+    boolean isCamera = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,8 +75,16 @@ public class ViewPagerActivity extends AppCompatActivity implements PlaylistAdap
         isFlashAvailable = getApplicationContext().getPackageManager()
                 .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
 
-        mCamera = Camera.open();
-        params = mCamera.getParameters();
+        try {
+            mCamera = Camera.open();
+            params = mCamera.getParameters();
+            isCamera = true;
+        } catch (RuntimeException e) {
+            isCamera = false;
+            Toast.makeText(this, "Aparat niedostępny.", Toast.LENGTH_SHORT);
+            Log.e("Aparat", "niedostepny" );
+            e.printStackTrace();
+        }
     }
 
     private void instantiateFragments() {
@@ -88,6 +98,8 @@ public class ViewPagerActivity extends AppCompatActivity implements PlaylistAdap
         Sensey.getInstance().stop();
         mHandler.removeCallbacks(mFlashTask);
         mHandler.removeCallbacks(mGestureTask);
+        Sensey.getInstance().stopOrientationDetection(orientationListener);
+        Sensey.getInstance().stopShakeDetection(shakeListener);
         RefWatcher refWatcher = MyApp.getRefWatcher(this);
         refWatcher.watch(this);
     }
@@ -122,10 +134,12 @@ public class ViewPagerActivity extends AppCompatActivity implements PlaylistAdap
                 if (isChecked) {
                     Sensey.getInstance().startShakeDetection(shakeListener);
                     Sensey.getInstance().stopOrientationDetection(orientationListener);
+                    mHandler.removeCallbacks(mGestureTask);
                 }
                 else {
                     Sensey.getInstance().stopShakeDetection(shakeListener);
                     turnOffFlashLight();
+                    mHandler.removeCallbacks(mFlashTask);
                     mHandler.postDelayed(mGestureTask, 10);
                 }
             }
@@ -184,7 +198,8 @@ public class ViewPagerActivity extends AppCompatActivity implements PlaylistAdap
 
     ShakeDetector.ShakeListener shakeListener = new ShakeDetector.ShakeListener() {
         @Override public void onShakeDetected() {
-            mHandler.postDelayed(mFlashTask, 10);
+            if(isCamera) mHandler.postDelayed(mFlashTask, 10);
+            else Toast.makeText(getApplicationContext(), "Camera niedostępna", Toast.LENGTH_SHORT).show();
         }
 
         @Override public void onShakeStopped() {
@@ -210,19 +225,23 @@ public class ViewPagerActivity extends AppCompatActivity implements PlaylistAdap
     };
 
     public void turnOnFlashLight() {
-        params = mCamera.getParameters();
-        params.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-        mCamera.setParameters(params);
-        mCamera.startPreview();
-        isFlashOn = true;
+        if(isCamera) {
+            params = mCamera.getParameters();
+            params.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+            mCamera.setParameters(params);
+            mCamera.startPreview();
+            isFlashOn = true;
+        }
     }
 
     public void turnOffFlashLight() {
-        params = mCamera.getParameters();
-        params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-        mCamera.setParameters(params);
-        mCamera.stopPreview();
-        isFlashOn = false;
+        if (isCamera) {
+            params = mCamera.getParameters();
+            params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+            mCamera.setParameters(params);
+            mCamera.stopPreview();
+            isFlashOn = false;
+        }
     }
 
 }

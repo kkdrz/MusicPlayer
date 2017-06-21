@@ -14,14 +14,10 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-
 import com.squareup.leakcanary.RefWatcher;
-
 import java.io.IOException;
 import java.util.ArrayList;
-
 import javax.inject.Inject;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -190,6 +186,7 @@ public class PlayerFragment extends Fragment implements SeekBar.OnSeekBarChangeL
 
     private Runnable mUpdateTimeTask = new Runnable() {
         public void run() {
+            mHandler.removeCallbacks(this);
             long totalDuration = mMediaPlayer.getDuration();
             long currentDuration = mMediaPlayer.getCurrentPosition();
 
